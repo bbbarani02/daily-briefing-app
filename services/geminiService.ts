@@ -4,7 +4,7 @@ import type { DailyBriefing, Source } from '../types';
 // A new GoogleGenAI instance will be created for each API call to ensure the latest key is used.
 const getAI = () => {
     if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set. Please select a key.");
+        throw new Error("Configuration Error: The Gemini API key has not been set. Please add it to your environment secrets to continue.");
     }
     return new GoogleGenAI({ apiKey: process.env.API_KEY });
 }

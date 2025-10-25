@@ -1,54 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import BottomNavBar, { Tab } from './components/BottomNavBar';
 import TodayView from './components/TodayView';
 import ChatView from './components/ChatView';
 import ImageEditView from './components/ImageEditView';
 import TranscribeView from './components/TranscribeView';
 import ThemeToggle from './components/ThemeToggle';
-import LoadingSpinner from './components/LoadingSpinner';
 
-// Add type declaration for the aistudio helper
-// FIX: Define AIStudio interface to match existing global type and fix error.
-interface AIStudio {
-    hasSelectedApiKey: () => Promise<boolean>;
-    openSelectKey: () => Promise<void>;
-}
-
-declare global {
-    interface Window {
-        aistudio?: AIStudio;
-    }
-}
-
-// Inlined ApiKeyPrompt component to avoid creating a new file
-const ApiKeyPrompt: React.FC<{ onKeySelect: () => void; }> = ({ onKeySelect }) => {
-    const handleSelectKey = async () => {
-        if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
-            await window.aistudio.openSelectKey();
-            // Assume success and let the parent component handle the state change
-            onKeySelect();
-        } else {
-            alert("This application requires access to the Gemini API, but the key selection utility is not available in your current environment.");
-        }
-    };
-
-    return (
-        <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-slate-900 p-4 font-sans antialiased">
-            <div className="text-center max-w-md">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Welcome to iOS Daily Briefing</h1>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    To get started, please select a Gemini API key. This app uses the Gemini API to generate your personalized daily briefings and power its features.
-                </p>
-                <button
-                    onClick={handleSelectKey}
-                    className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-slate-900"
-                >
-                    Select API Key
-                </button>
-            </div>
+const ConfigurationError: React.FC = () => (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-slate-900 p-4 font-sans antialiased">
+        <div className="text-center max-w-md bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Configuration Error</h1>
+            <p className="text-gray-600 dark:text-gray-300">
+                The Gemini API key has not been set. Please add the <code className="bg-gray-200 dark:bg-slate-700 p-1 rounded text-sm font-mono">API_KEY</code> to your environment secrets to continue.
+            </p>
         </div>
-    );
-};
+    </div>
+);
+
 
 const getGreeting = () => {
     const hour = new Date().getHours();
@@ -58,29 +29,8 @@ const getGreeting = () => {
 };
 
 const App: React.FC = () => {
-    const [isApiKeyReady, setIsApiKeyReady] = useState(false);
-    const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
     const [activeTab, setActiveTab] = useState<Tab>('today');
-
-    useEffect(() => {
-        const checkApiKey = async () => {
-            if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
-                try {
-                    const hasKey = await window.aistudio.hasSelectedApiKey();
-                    setIsApiKeyReady(hasKey);
-                } catch (e) {
-                    console.error("Error checking for API key:", e);
-                    setIsApiKeyReady(false);
-                }
-            } else {
-                console.warn('aistudio API key utility not found.');
-                // For this environment, we require the utility.
-                setIsApiKeyReady(false);
-            }
-            setIsCheckingApiKey(false);
-        };
-        checkApiKey();
-    }, []);
+    const isApiKeySet = !!process.env.API_KEY;
 
     const renderContent = () => {
         switch (activeTab) {
@@ -110,16 +60,8 @@ const App: React.FC = () => {
         }
     }
     
-    if (isCheckingApiKey) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <LoadingSpinner />
-            </div>
-        );
-    }
-    
-    if (!isApiKeyReady) {
-        return <ApiKeyPrompt onKeySelect={() => setIsApiKeyReady(true) } />;
+    if (!isApiKeySet) {
+        return <ConfigurationError />;
     }
 
     return (
