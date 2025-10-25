@@ -2,6 +2,7 @@
   "name": "iOS Daily Briefing",
   "description": "An iOS-styled web app that provides a daily briefing including the latest news, weather alerts, and financial market updates (gold, silver, and major stocks) based on your location.",
   "requestFramePermissions": [
-    "geolocation"
+    "geolocation",
+    "microphone"
   ]
 }
