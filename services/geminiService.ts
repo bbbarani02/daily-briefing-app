@@ -1,15 +1,12 @@
 import { GoogleGenAI, Chat, Modality, LiveSession, LiveServerMessage, Blob } from "@google/genai";
 import type { DailyBriefing, Source } from '../types';
 
-let ai: GoogleGenAI | null = null;
+// A new GoogleGenAI instance will be created for each API call to ensure the latest key is used.
 const getAI = () => {
     if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set");
+        throw new Error("API_KEY environment variable not set. Please select a key.");
     }
-    if (!ai) {
-        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    }
-    return ai;
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
 }
 
 
@@ -159,6 +156,13 @@ const startTranscriptionSession = (onTranscriptionUpdate: (text: string, isFinal
                 if (message.serverContent?.turnComplete) {
                     onTranscriptionUpdate(currentTranscription, true);
                     currentTranscription = '';
+                }
+                // FIX: Per Gemini API guidelines, audio output must be handled when responseModality is AUDIO.
+                const audioData = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+                if (audioData) {
+                    // The app is for transcription only, so we are not playing back the audio.
+                    // We acknowledge receipt of audio data to comply with API guidelines.
+                    console.log("Received audio data from model, but not playing it.");
                 }
             },
             onerror: (e: ErrorEvent) => {

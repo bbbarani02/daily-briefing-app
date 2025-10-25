@@ -108,11 +108,7 @@ const TodayView: React.FC = () => {
             setBriefing(data);
             setSources(sourceData);
         } catch (err) {
-            if (err instanceof Error && err.message.includes('API_KEY')) {
-                setError('Configuration Error: The Gemini API key has not been set. Please add it to your environment secrets to continue.');
-            } else {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            }
+            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
         } finally {
             setIsLoading(false);
         }

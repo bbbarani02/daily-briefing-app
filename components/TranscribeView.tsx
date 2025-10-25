@@ -84,7 +84,7 @@ const TranscribeView: React.FC = () => {
 
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             // FIX: Property 'webkitAudioContext' does not exist on type 'Window & typeof globalThis'. Did you mean 'AudioContext'?
-            audioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
             mediaStreamSourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
             scriptProcessorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
             
